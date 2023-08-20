@@ -1,0 +1,9 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "replicache/db/query.sql"
+    schema: "replicache/db/migrations"
+    gen:
+      go:
+        package: "db"
+        out: "replicache/db"

@@ -1,22 +1,27 @@
 "use client"
 
-import React, {useEffect, useState} from 'react';
+import React, {FormEvent, useEffect, useState} from 'react';
 import {Replicache, WriteTransaction} from 'replicache';
 import {useSubscribe} from 'replicache-react';
+import {nanoid} from "nanoid";
 
 type Message = {
     from: string
     content: string
-    order: int
+    order: number
 }
 
 
 const REPLICACHE_LICENSE_KEY = process.env.NEXT_PUBLIC_REPLICACHE_LICENSE_KEY ?? ""
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? ""
 
-const updateUser = async (tx: WriteTransaction, user: User) => {
-    await tx.put(`user/${user.id}`, user);
-    console.log('message put')
+const createMessage = async (tx: WriteTransaction,
+                             {id, from, content, order}: Message & { id: string }) => {
+    await tx.put(`message/${id}`, {
+        from,
+        content,
+        order,
+    });
 }
 
 
@@ -30,7 +35,7 @@ const updateUser = async (tx: WriteTransaction, user: User) => {
 // ];
 
 const mutators = {
-    updateUser,
+    createMessage: createMessage,
 }
 
 function Chat({userId}: { userId: string }) {
@@ -90,6 +95,24 @@ function Chat({userId}: { userId: string }) {
 
     }, []);
 
+    const contentRef = React.createRef<HTMLInputElement>();
+
+    const onSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        const last = messages.length && (messages[messages.length - 1][1].order ?? 0);
+        const order = last + 1;
+
+        if (!contentRef.current) return;
+
+        rep?.mutate.createMessage({
+            id: nanoid(),
+            from: "Magnus",
+            content: contentRef.current.value,
+            order,
+        });
+        contentRef.current.value = '';
+    };
+
 
     // async function handleEmojiSelected(emoji: string) {
     //     await rep?.mutate.updateUser({
@@ -113,6 +136,10 @@ function Chat({userId}: { userId: string }) {
                     )
                 })}
             </ul>
+            <form onSubmit={onSubmit}>
+                <input ref={contentRef} className={"border"}/>
+                <button>Send</button>
+            </form>
         </div>
     );
 }
