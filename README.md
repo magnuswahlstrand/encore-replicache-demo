@@ -5,9 +5,9 @@
 * Setup [Replicache](https://doc.replicache.dev/byob/intro)
     * [x] Client View
     * [x] Render UI
-    * [ ] Local Mutation
-    * [ ] Remote Database
-    * [ ] Remote Schema
-    * [ ] Remote Mutations
+    * [x] Local Mutation
+    * [x] Remote Database
+    * [x] Remote Schema
+    * [x] Remote Mutations
     * [ ] Dynamic Pull
     * [ ] Poke

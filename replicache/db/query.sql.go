@@ -67,13 +67,14 @@ func (q *Queries) GetSpaceVersion(ctx context.Context, id string) (int32, error)
 }
 
 const insertMessage = `-- name: InsertMessage :exec
-INSERT INTO messages ("key", "type", "data", "deleted", "version")
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO messages ("key", "type", "data", "deleted", "version", "space_id")
+VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT ("key") DO UPDATE
-    SET "type"    = $2,
-        "data"    = $3,
-        "deleted" = $4,
-        "version" = $5
+    SET "type"     = $2,
+        "data"     = $3,
+        "deleted"  = $4,
+        "version"  = $5,
+        "space_id" = $6
 `
 
 type InsertMessageParams struct {
@@ -82,6 +83,7 @@ type InsertMessageParams struct {
 	Data    json.RawMessage
 	Deleted bool
 	Version int32
+	SpaceID string
 }
 
 func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) error {
@@ -91,6 +93,7 @@ func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) er
 		arg.Data,
 		arg.Deleted,
 		arg.Version,
+		arg.SpaceID,
 	)
 	return err
 }

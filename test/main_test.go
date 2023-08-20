@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	r "encore.app/replicache"
 	"encore.app/replicache/db"
 	"github.com/matryer/is"
@@ -25,7 +26,7 @@ func setup(t *testing.T) *is.I {
 	}))
 	is.NoErr(db.ReplicacheDb.CreateClient(context.TODO(), db.CreateClientParams{
 		ID:             TEST_CLIENT_ID,
-		LastMutationID: -1,
+		LastMutationID: 0,
 	}))
 	return is
 }
@@ -38,7 +39,8 @@ func TestProcessMutation(t *testing.T) {
 	// Act
 	err := r.ProcessMutation(context.TODO(), db.ReplicacheDb, TEST_CLIENT_ID, r.Mutation{
 		ID:   1,
-		Name: "test",
+		Name: "createMessage",
+		Args: json.RawMessage(`{"from":"Fred","content":"tacos?"}`),
 		//Args:      JSONValue
 		Timestamp: 1,
 	})
@@ -49,9 +51,9 @@ func TestProcessMutation(t *testing.T) {
 
 	// Act
 	err = r.ProcessMutation(context.TODO(), db.ReplicacheDb, TEST_CLIENT_ID, r.Mutation{
-		ID:   1,
-		Name: "test",
-		//Args:      JSONValue
+		ID:        1,
+		Name:      "createMessage",
+		Args:      json.RawMessage(`{"from":"Fred","content":"tacos?"}`),
 		Timestamp: 1,
 	})
 	is.NoErr(err)

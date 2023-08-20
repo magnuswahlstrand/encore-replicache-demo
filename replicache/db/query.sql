@@ -5,13 +5,14 @@ WHERE version > $1;
 
 
 -- name: InsertMessage :exec
-INSERT INTO messages ("key", "type", "data", "deleted", "version")
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO messages ("key", "type", "data", "deleted", "version", "space_id")
+VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT ("key") DO UPDATE
-    SET "type"    = $2,
-        "data"    = $3,
-        "deleted" = $4,
-        "version" = $5;
+    SET "type"     = $2,
+        "data"     = $3,
+        "deleted"  = $4,
+        "version"  = $5,
+        "space_id" = $6;
 
 
 -- name: GetSpaceVersion :one

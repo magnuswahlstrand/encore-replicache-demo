@@ -49,7 +49,7 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 	//
 
 	if mutation.ID > nextMutationID {
-		return fmt.Errorf(`Mutation %d is from the future - aborting`, mutation.ID)
+		return fmt.Errorf(`Mutation %d (%d) is from the future - aborting`, mutation.ID, nextMutationID)
 	}
 	switch mutation.Name {
 	case "createMessage":
@@ -60,6 +60,7 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 			Key:     fmt.Sprintf(`message/%s`, mutation.ID),
 			Type:    `message`,
 			Data:    mutation.Args,
+			SpaceID: DEFAULT_SPACE_ID,
 			Deleted: false,
 			Version: nextVersion,
 		})
