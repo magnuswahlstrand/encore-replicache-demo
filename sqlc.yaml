@@ -6,4 +6,10 @@ sql:
     gen:
       go:
         package: "db"
+        sql_package: "pgx/v5"
         out: "replicache/db"
+        overrides:
+          - column: "messages.data"
+            go_type:
+              import: "encore.app/types"
+              type: "Message"

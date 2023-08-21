@@ -5,13 +5,13 @@
 package db
 
 import (
-	"encoding/json"
+	"encore.app/types"
 )
 
 type Message struct {
 	Key     string
 	Type    string
-	Data    json.RawMessage
+	Data    types.Message
 	Deleted bool
 	Version int32
 	SpaceID string

@@ -4,22 +4,22 @@ import (
 	"context"
 	"encore.app/replicache/db"
 	"encore.dev/rlog"
-	"github.com/davecgh/go-spew/spew"
+	"fmt"
 )
 
 func TxPull(ctx context.Context, pull *PullRequest) (*PullResponse, error) {
-	tx, err := db.Begin()
+	tx, err := db.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	resp, err := ProcessPull(ctx, db.ReplicacheDb.WithTx(tx), pull)
 	if err != nil {
 		return nil, err
 	}
 
-	tx.Commit()
+	tx.Commit(ctx)
 	return resp, nil
 }
 
@@ -38,16 +38,19 @@ func ProcessPull(ctx context.Context, tx *db.Queries, pull *PullRequest) (*PullR
 
 	lastMutationID, err := GetLastMutationIDOrZero(ctx, tx, string(pull.ClientID), isExistingClient)
 	if err != nil {
+		fmt.Println("YAAAAAY")
 		return nil, err
 	}
 
 	changed, err := tx.ListMessageSince(ctx, fromVersion)
 	if err != nil {
+
+		fmt.Println("XAAAAAY")
 		return nil, err
 	}
 
 	patch := []PatchOperation{}
-	for i, message := range changed {
+	for _, message := range changed {
 		if message.Deleted {
 			patch = append(patch, PatchOperation{
 				Op: "del",
@@ -58,18 +61,13 @@ func ProcessPull(ctx context.Context, tx *db.Queries, pull *PullRequest) (*PullR
 			patch = append(patch, PatchOperation{
 				Op: "put",
 				//Key: "message/" + message.Key,
-				Key: message.Key,
-				Value: &Message{
-					From:    "Magnus",
-					Content: "some content",
-					Order:   int32(i),
-				},
+				Key:   message.Key,
+				Value: &message.Data,
 			})
 		}
 	}
 
 	rlog.Info("Successfully pulled", "cookie", version, "lastMutationID", lastMutationID, "patch", len(patch))
-	spew.Dump(patch)
 	return &PullResponse{
 		LastMutationID: lastMutationID,
 		Cookie:         version,

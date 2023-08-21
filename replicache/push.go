@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"encore.app/replicache/db"
+	"encore.app/types"
 	"encore.dev/rlog"
 	"fmt"
 )
@@ -11,18 +12,18 @@ import (
 const DEFAULT_SPACE_ID = "default"
 
 func TxProcessMutation(ctx context.Context, clientID ClientID, mutation Mutation) error {
-	tx, err := db.Begin()
+	tx, err := db.Begin(ctx)
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer tx.Rollback(ctx)
 
 	err = ProcessMutation(ctx, db.ReplicacheDb.WithTx(tx), clientID, mutation)
 	if err != nil {
 		return err
 	}
 
-	err = tx.Commit()
+	err = tx.Commit(ctx)
 	return err
 }
 
@@ -65,12 +66,16 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 	case "createMessage":
 		// Use zod to validate the mutation arguments.
 		//const user = userValidation.parse(mutation.args)
+		msg := types.Message{}
+		if err := json.Unmarshal(mutation.Args, &msg); err != nil {
+			return err
+		}
 
 		// TODO: Handle delete user
 		err = dbClient.InsertMessage(ctx, db.InsertMessageParams{
 			Key:     key,
 			Type:    `message`,
-			Data:    mutation.Args,
+			Data:    msg,
 			SpaceID: DEFAULT_SPACE_ID,
 			Deleted: false,
 			Version: nextVersion,
@@ -91,7 +96,7 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 	if err != nil {
 		return fmt.Errorf(`Failed to update last mutation ID: %w`, err)
 	}
-	if nRows, _ := res.RowsAffected(); nRows != 1 {
+	if nRows := res.RowsAffected(); nRows != 1 {
 		err = dbClient.CreateClient(ctx, db.CreateClientParams{
 			ID:             string(clientID),
 			LastMutationID: nextMutationID,

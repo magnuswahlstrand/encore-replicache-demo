@@ -7,8 +7,9 @@ package db
 
 import (
 	"context"
-	"database/sql"
-	"encoding/json"
+
+	"encore.app/types"
+	"github.com/jackc/pgx/v5/pgconn"
 )
 
 const createClient = `-- name: CreateClient :exec
@@ -22,7 +23,7 @@ type CreateClientParams struct {
 }
 
 func (q *Queries) CreateClient(ctx context.Context, arg CreateClientParams) error {
-	_, err := q.db.ExecContext(ctx, createClient, arg.ID, arg.LastMutationID)
+	_, err := q.db.Exec(ctx, createClient, arg.ID, arg.LastMutationID)
 	return err
 }
 
@@ -37,7 +38,7 @@ type CreateSpaceParams struct {
 }
 
 func (q *Queries) CreateSpace(ctx context.Context, arg CreateSpaceParams) error {
-	_, err := q.db.ExecContext(ctx, createSpace, arg.ID, arg.Version)
+	_, err := q.db.Exec(ctx, createSpace, arg.ID, arg.Version)
 	return err
 }
 
@@ -48,7 +49,7 @@ WHERE id = $1
 `
 
 func (q *Queries) GetLastMutationID(ctx context.Context, id string) (int32, error) {
-	row := q.db.QueryRowContext(ctx, getLastMutationID, id)
+	row := q.db.QueryRow(ctx, getLastMutationID, id)
 	var last_mutation_id int32
 	err := row.Scan(&last_mutation_id)
 	return last_mutation_id, err
@@ -61,7 +62,7 @@ WHERE id = $1 FOR UPDATE
 `
 
 func (q *Queries) GetSpaceVersion(ctx context.Context, id string) (int32, error) {
-	row := q.db.QueryRowContext(ctx, getSpaceVersion, id)
+	row := q.db.QueryRow(ctx, getSpaceVersion, id)
 	var version int32
 	err := row.Scan(&version)
 	return version, err
@@ -81,14 +82,14 @@ ON CONFLICT ("key") DO UPDATE
 type InsertMessageParams struct {
 	Key     string
 	Type    string
-	Data    json.RawMessage
+	Data    types.Message
 	Deleted bool
 	Version int32
 	SpaceID string
 }
 
 func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) error {
-	_, err := q.db.ExecContext(ctx, insertMessage,
+	_, err := q.db.Exec(ctx, insertMessage,
 		arg.Key,
 		arg.Type,
 		arg.Data,
@@ -106,7 +107,7 @@ WHERE version > $1
 `
 
 func (q *Queries) ListMessageSince(ctx context.Context, version int32) ([]Message, error) {
-	rows, err := q.db.QueryContext(ctx, listMessageSince, version)
+	rows, err := q.db.Query(ctx, listMessageSince, version)
 	if err != nil {
 		return nil, err
 	}
@@ -126,9 +127,6 @@ func (q *Queries) ListMessageSince(ctx context.Context, version int32) ([]Messag
 		}
 		items = append(items, i)
 	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -146,8 +144,8 @@ type UpdateLastMutationIDParams struct {
 	ID             string
 }
 
-func (q *Queries) UpdateLastMutationID(ctx context.Context, arg UpdateLastMutationIDParams) (sql.Result, error) {
-	return q.db.ExecContext(ctx, updateLastMutationID, arg.LastMutationID, arg.ID)
+func (q *Queries) UpdateLastMutationID(ctx context.Context, arg UpdateLastMutationIDParams) (pgconn.CommandTag, error) {
+	return q.db.Exec(ctx, updateLastMutationID, arg.LastMutationID, arg.ID)
 }
 
 const updateSpaceVersion = `-- name: UpdateSpaceVersion :exec
@@ -162,6 +160,6 @@ type UpdateSpaceVersionParams struct {
 }
 
 func (q *Queries) UpdateSpaceVersion(ctx context.Context, arg UpdateSpaceVersionParams) error {
-	_, err := q.db.ExecContext(ctx, updateSpaceVersion, arg.Version, arg.ID)
+	_, err := q.db.Exec(ctx, updateSpaceVersion, arg.Version, arg.ID)
 	return err
 }
