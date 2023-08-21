@@ -65,8 +65,6 @@ function Chat({userId}: { userId: string }) {
             pullURL: BASE_URL + '/api/replicache-pull',
             mutators
         })
-        console.log(BASE_URL)
-        console.log(BASE_URL + '/api/replicache-pull')
         setRep(r);
 
         // function listen() {
@@ -131,7 +129,7 @@ function Chat({userId}: { userId: string }) {
                 {messages.map(([id, msg]) => {
                     return (
                         <li key={msg.order}>
-                            {msg.from}: {msg.content}
+                            {id}: {msg.from}: {msg.content}
                         </li>
                     )
                 })}

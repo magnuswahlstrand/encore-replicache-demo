@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 )
 
@@ -134,7 +135,7 @@ func (q *Queries) ListMessageSince(ctx context.Context, version int32) ([]Messag
 	return items, nil
 }
 
-const updateLastMutationID = `-- name: UpdateLastMutationID :exec
+const updateLastMutationID = `-- name: UpdateLastMutationID :execresult
 UPDATE replicache_clients
 SET last_mutation_id = $1
 WHERE id = $2
@@ -145,9 +146,8 @@ type UpdateLastMutationIDParams struct {
 	ID             string
 }
 
-func (q *Queries) UpdateLastMutationID(ctx context.Context, arg UpdateLastMutationIDParams) error {
-	_, err := q.db.ExecContext(ctx, updateLastMutationID, arg.LastMutationID, arg.ID)
-	return err
+func (q *Queries) UpdateLastMutationID(ctx context.Context, arg UpdateLastMutationIDParams) (sql.Result, error) {
+	return q.db.ExecContext(ctx, updateLastMutationID, arg.LastMutationID, arg.ID)
 }
 
 const updateSpaceVersion = `-- name: UpdateSpaceVersion :exec

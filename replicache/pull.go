@@ -2,11 +2,9 @@ package replicache
 
 import (
 	"context"
-	"database/sql"
 	"encore.app/replicache/db"
 	"encore.dev/rlog"
-	"errors"
-	"fmt"
+	"github.com/davecgh/go-spew/spew"
 )
 
 func TxPull(ctx context.Context, pull *PullRequest) (*PullResponse, error) {
@@ -30,21 +28,20 @@ func ProcessPull(ctx context.Context, tx *db.Queries, pull *PullRequest) (*PullR
 	if err != nil {
 		return nil, err
 	}
-	isExistingClient := pull.Cookie > 0
 
-	rlog.Info("Pull", "version", version, "isExistingClient", isExistingClient)
-	lastMutationID, err := tx.GetLastMutationID(ctx, string(pull.ClientID))
-	rlog.Error("foo", "foo2", fmt.Sprintf("lastMutationID: %T %v", err, err))
-	rlog.Error("Pull1", "lastMutationID", lastMutationID, "err", err)
-	switch {
-	case errors.Is(err, sql.ErrNoRows) && !isExistingClient:
-		lastMutationID = 0
-	case err != nil:
+	var fromVersion int32 = 0
+	isExistingClient := false
+	if pull.Cookie != nil {
+		fromVersion = *pull.Cookie
+		isExistingClient = true
+	}
+
+	lastMutationID, err := GetLastMutationIDOrZero(ctx, tx, string(pull.ClientID), isExistingClient)
+	if err != nil {
 		return nil, err
 	}
 
-	rlog.Info("Pull2", "lastMutationID", lastMutationID)
-	changed, err := tx.ListMessageSince(ctx, lastMutationID)
+	changed, err := tx.ListMessageSince(ctx, fromVersion)
 	if err != nil {
 		return nil, err
 	}
@@ -53,22 +50,26 @@ func ProcessPull(ctx context.Context, tx *db.Queries, pull *PullRequest) (*PullR
 	for i, message := range changed {
 		if message.Deleted {
 			patch = append(patch, PatchOperation{
-				Op:  "del",
-				Key: "message/" + message.Key,
+				Op: "del",
+				//Key: "message/" + message.Key,
+				Key: message.Key,
 			})
-			continue
+		} else {
+			patch = append(patch, PatchOperation{
+				Op: "put",
+				//Key: "message/" + message.Key,
+				Key: message.Key,
+				Value: &Message{
+					From:    "Magnus",
+					Content: "some content",
+					Order:   int32(i),
+				},
+			})
 		}
-		patch = append(patch, PatchOperation{
-			Op:  "put",
-			Key: "message/" + message.Key,
-			Value: &Message{
-				From:    "Magnus",
-				Content: "some content",
-				Order:   int32(i),
-			},
-		})
 	}
 
+	rlog.Info("Successfully pulled", "cookie", version, "lastMutationID", lastMutationID, "patch", len(patch))
+	spew.Dump(patch)
 	return &PullResponse{
 		LastMutationID: lastMutationID,
 		Cookie:         version,

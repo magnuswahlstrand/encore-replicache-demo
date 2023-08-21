@@ -4,6 +4,7 @@ go 1.21.0
 
 require (
 	encore.dev v1.25.0
+	github.com/davecgh/go-spew v1.1.1
 	github.com/matryer/is v1.4.1
 )
 

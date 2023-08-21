@@ -14,6 +14,11 @@ type Message struct {
 	Order   int32  `json:"order"`
 }
 
+type MessageWithID struct {
+	ID string `json:"id"`
+	Message
+}
+
 type PushRequest struct {
 	ProfileID     string     `json:"profile_id"`
 	ClientID      ClientID   `json:"client_id"`
@@ -25,7 +30,7 @@ type PushRequest struct {
 type PullRequest struct {
 	ProfileID      string   `json:"profile_id"`
 	ClientID       ClientID `json:"client_id"`
-	Cookie         int32    `json:"cookie"`
+	Cookie         *int32   `json:"cookie"`
 	LastMutationID int32    `json:"last_mutation_id"`
 	PullVersion    int32    `json:"pull_version"`
 	SchemaVersion  string   `json:"schema_version"`

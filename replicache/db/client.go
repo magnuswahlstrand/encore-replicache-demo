@@ -5,6 +5,7 @@ import (
 	"encore.dev/storage/sqldb"
 )
 
+// TODO: Rename from "todo" to "replicache"
 var DB = sqldb.NewDatabase("todo", sqldb.DatabaseConfig{
 	Migrations: "./migrations",
 })

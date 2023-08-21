@@ -34,7 +34,7 @@ SELECT last_mutation_id
 FROM replicache_clients
 WHERE id = $1;
 
--- name: UpdateLastMutationID :exec
+-- name: UpdateLastMutationID :execresult
 UPDATE replicache_clients
 SET last_mutation_id = $1
 WHERE id = $2;
