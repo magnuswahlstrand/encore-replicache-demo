@@ -54,14 +54,14 @@ type PullResponse struct {
 }
 
 type PatchOperation struct {
-	Op    string         `json:"op"`
-	Key   string         `json:"key,omitempty"`
-	Value *types.Message `json:"value,omitempty"`
+	Op    string      `json:"op"`
+	Key   string      `json:"key,omitempty"`
+	Value *types.Task `json:"value,omitempty"`
 }
 
 type MessageWithID struct {
 	ID string `json:"id"`
-	types.Message
+	types.Task
 }
 
 type ClientID string

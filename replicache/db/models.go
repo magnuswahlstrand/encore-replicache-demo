@@ -11,7 +11,7 @@ import (
 type Message struct {
 	Key     string
 	Type    string
-	Data    types.Message
+	Data    types.Task
 	Deleted bool
 	Version int32
 	SpaceID string

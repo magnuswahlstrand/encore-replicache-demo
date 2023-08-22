@@ -66,7 +66,7 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 	case "createMessage":
 		// Use zod to validate the mutation arguments.
 		//const user = userValidation.parse(mutation.args)
-		msg := types.Message{}
+		msg := types.Task{}
 		if err := json.Unmarshal(mutation.Args, &msg); err != nil {
 			return err
 		}

@@ -1,22 +1,26 @@
 import * as React from 'react';
+import {ChangeEvent} from 'react';
 import {cn} from "@/lib/utils";
 
 
 type Props = {
+    id: string
     title: string
     completed: boolean
+    onChange: (e: ChangeEvent<HTMLInputElement>) => void
 };
-export const Task = (props: Props) => {
+export const TaskItem = ({id, title, completed, onChange}: Props) => {
     return (
         <div>
-            <input type="checkbox" id="task_1" className="hidden"/>
+            <input type="checkbox" id={`task_${id}`} className="hidden"
+                   onChange={onChange} checked={completed}/>
             <label className="flex items-center h-10 px-2 rounded cursor-pointer hover:bg-gray-100"
-                   htmlFor="task_1">
+                   htmlFor={`task_${id}`}>
 					<span
                         className={cn(
                             "flex items-center justify-center w-5 h-5 text-transparent border-2 border-gray-300 rounded-full",
                             {
-                                "bg-green-500 border-green-500 text-white": props.completed,
+                                "bg-green-500 border-green-500 text-white": completed,
                             }
                         )}
                     >
@@ -28,9 +32,9 @@ export const Task = (props: Props) => {
 						</svg>
 					</span>
                 <span className={cn("ml-4 text-sm", {
-                    "line-through": props.completed,
-                    "text-gray-400": props.completed,
-                })}> {props.title}</span>
+                    "line-through": completed,
+                    "text-gray-400": completed,
+                })}> {title}</span>
             </label>
         </div>
     )

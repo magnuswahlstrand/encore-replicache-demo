@@ -1,7 +1,8 @@
 package types
 
-type Message struct {
-	From    string `json:"from"`
-	Content string `json:"content"`
-	Order   int32  `json:"order"`
+type Task struct {
+	ID        string `json:"id"`
+	Order     string `json:"order"`
+	Title     int32  `json:"title"`
+	Completed bool   `json:"completed"`
 }
