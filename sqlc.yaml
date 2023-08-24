@@ -12,4 +12,4 @@ sql:
           - column: "messages.data"
             go_type:
               import: "encore.app/types"
-              type: "Message"
+              type: "Task"

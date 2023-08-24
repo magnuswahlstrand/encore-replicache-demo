@@ -68,7 +68,7 @@ func (q *Queries) GetSpaceVersion(ctx context.Context, id string) (int32, error)
 	return version, err
 }
 
-const insertMessage = `-- name: InsertMessage :exec
+const insertTasks = `-- name: InsertTasks :exec
 INSERT INTO messages ("key", "type", "data", "deleted", "version", "space_id")
 VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT ("key") DO UPDATE
@@ -79,7 +79,7 @@ ON CONFLICT ("key") DO UPDATE
         "space_id" = $6
 `
 
-type InsertMessageParams struct {
+type InsertTasksParams struct {
 	Key     string
 	Type    string
 	Data    types.Task
@@ -88,8 +88,8 @@ type InsertMessageParams struct {
 	SpaceID string
 }
 
-func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) error {
-	_, err := q.db.Exec(ctx, insertMessage,
+func (q *Queries) InsertTasks(ctx context.Context, arg InsertTasksParams) error {
+	_, err := q.db.Exec(ctx, insertTasks,
 		arg.Key,
 		arg.Type,
 		arg.Data,
@@ -100,14 +100,14 @@ func (q *Queries) InsertMessage(ctx context.Context, arg InsertMessageParams) er
 	return err
 }
 
-const listMessageSince = `-- name: ListMessageSince :many
+const listTasksSince = `-- name: ListTasksSince :many
 SELECT key, type, data, deleted, version, space_id
 FROM messages
 WHERE version > $1
 `
 
-func (q *Queries) ListMessageSince(ctx context.Context, version int32) ([]Message, error) {
-	rows, err := q.db.Query(ctx, listMessageSince, version)
+func (q *Queries) ListTasksSince(ctx context.Context, version int32) ([]Message, error) {
+	rows, err := q.db.Query(ctx, listTasksSince, version)
 	if err != nil {
 		return nil, err
 	}
@@ -161,5 +161,22 @@ type UpdateSpaceVersionParams struct {
 
 func (q *Queries) UpdateSpaceVersion(ctx context.Context, arg UpdateSpaceVersionParams) error {
 	_, err := q.db.Exec(ctx, updateSpaceVersion, arg.Version, arg.ID)
+	return err
+}
+
+const updateTaskCompleted = `-- name: UpdateTaskCompleted :exec
+UPDATE messages
+SET data = jsonb_set(data, '{completed}', $2), version = $3
+WHERE key = $1
+`
+
+type UpdateTaskCompletedParams struct {
+	Key         string
+	Replacement []byte
+	Version     int32
+}
+
+func (q *Queries) UpdateTaskCompleted(ctx context.Context, arg UpdateTaskCompletedParams) error {
+	_, err := q.db.Exec(ctx, updateTaskCompleted, arg.Key, arg.Replacement, arg.Version)
 	return err
 }

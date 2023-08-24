@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encore.app/types"
 	"encore.dev/beta/errs"
+	"encore.dev/rlog"
 )
 
 //encore:api public method=POST path=/api/replicache-pull
@@ -24,7 +25,16 @@ func Push(ctx context.Context, request *PushRequest) error {
 
 	for _, mutation := range request.Mutations {
 		// TODO: Handle result
-		_ = TxProcessMutation(ctx, request.ClientID, mutation)
+		err := TxProcessMutation(ctx, request.ClientID, mutation)
+		if err != nil {
+			rlog.Error("Mutation", "mutation", mutation, "error", err)
+
+			// TODO: Remove this
+			//return &errs.Error{
+			//	Code:    errs.Internal,
+			//	Message: err.Error(),
+			//}
+		}
 	}
 
 	return nil

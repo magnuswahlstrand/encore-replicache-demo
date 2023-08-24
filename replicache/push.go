@@ -7,6 +7,7 @@ import (
 	"encore.app/types"
 	"encore.dev/rlog"
 	"fmt"
+	"strconv"
 )
 
 const DEFAULT_SPACE_ID = "default"
@@ -47,6 +48,7 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 	//// It's common due to connectivity issues for clients to send a
 	//// mutation which has already been processed. Skip these.
 	if mutation.ID < nextMutationID {
+		fmt.Println("XXXXY", mutation.ID, nextMutationID)
 		rlog.Info("Mutation has already been processed - skipping", "mutation", mutation.ID)
 		return nil
 	}
@@ -56,25 +58,16 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 		return fmt.Errorf(`Mutation %d (%d) is from the future - aborting`, mutation.ID, nextMutationID)
 	}
 
-	v := MessageWithID{}
-	if err := json.Unmarshal(mutation.Args, &v); err != nil {
-		return err
-	}
-	key := fmt.Sprintf(`message/%s`, v.ID)
-
 	switch mutation.Name {
-	case "createMessage":
-		// Use zod to validate the mutation arguments.
-		//const user = userValidation.parse(mutation.args)
-		msg := types.Task{}
+	case "addTask":
+		var msg types.Task
 		if err := json.Unmarshal(mutation.Args, &msg); err != nil {
 			return err
 		}
 
-		// TODO: Handle delete user
-		err = dbClient.InsertMessage(ctx, db.InsertMessageParams{
-			Key:     key,
-			Type:    `message`,
+		err = dbClient.InsertTasks(ctx, db.InsertTasksParams{
+			Key:     fmt.Sprintf("task/%s", msg.ID),
+			Type:    `task`,
 			Data:    msg,
 			SpaceID: DEFAULT_SPACE_ID,
 			Deleted: false,
@@ -83,6 +76,22 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 		if err != nil {
 			return err
 		}
+	case "setTaskCompleted":
+		var update types.TaskCompleted
+		if err := json.Unmarshal(mutation.Args, &update); err != nil {
+			return err
+		}
+
+		rlog.Info("Updating task", "id", update.ID, "completed", update.Completed)
+		err = dbClient.UpdateTaskCompleted(ctx, db.UpdateTaskCompletedParams{
+			Key:         fmt.Sprintf("task/%s", update.ID),
+			Replacement: []byte(strconv.FormatBool(update.Completed)),
+			Version:     nextVersion,
+		})
+		if err != nil {
+			return err
+		}
+
 	default:
 		return fmt.Errorf(`Unknown mutation: %s`, mutation.Name)
 	}
@@ -114,6 +123,6 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 		return err
 	}
 
-	rlog.Info("Successfully processed mutation", "key", key, "version", nextVersion, "lastMutationID", nextMutationID)
+	//rlog.Info("Successfully processed mutation", "key", key, "version", nextVersion, "lastMutationID", nextMutationID)
 	return nil
 }

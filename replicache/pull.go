@@ -38,19 +38,18 @@ func ProcessPull(ctx context.Context, tx *db.Queries, pull *PullRequest) (*PullR
 
 	lastMutationID, err := GetLastMutationIDOrZero(ctx, tx, string(pull.ClientID), isExistingClient)
 	if err != nil {
-		fmt.Println("YAAAAAY")
-		return nil, err
+		return nil, fmt.Errorf("getting last mutation id: %w", err)
 	}
 
-	changed, err := tx.ListMessageSince(ctx, fromVersion)
+	changed, err := tx.ListTasksSince(ctx, fromVersion)
 	if err != nil {
 
-		fmt.Println("XAAAAAY")
-		return nil, err
+		return nil, fmt.Errorf("listing messages: %w", err)
 	}
 
 	patch := []PatchOperation{}
 	for _, message := range changed {
+		message := message
 		if message.Deleted {
 			patch = append(patch, PatchOperation{
 				Op: "del",
@@ -66,6 +65,8 @@ func ProcessPull(ctx context.Context, tx *db.Queries, pull *PullRequest) (*PullR
 			})
 		}
 	}
+
+	fmt.Println("patch", patch)
 
 	rlog.Info("Successfully pulled", "cookie", version, "lastMutationID", lastMutationID, "patch", len(patch))
 	return &PullResponse{

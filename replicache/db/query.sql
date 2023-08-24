@@ -1,10 +1,10 @@
--- name: ListMessageSince :many
+-- name: ListTasksSince :many
 SELECT *
 FROM messages
 WHERE version > $1;
 
 
--- name: InsertMessage :exec
+-- name: InsertTasks :exec
 INSERT INTO messages ("key", "type", "data", "deleted", "version", "space_id")
 VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT ("key") DO UPDATE
@@ -14,6 +14,10 @@ ON CONFLICT ("key") DO UPDATE
         "version"  = $5,
         "space_id" = $6;
 
+-- name: UpdateTaskCompleted :exec
+UPDATE messages
+SET data = jsonb_set(data, '{completed}', $2), version = $3
+WHERE key = $1;
 
 -- name: GetSpaceVersion :one
 SELECT version
