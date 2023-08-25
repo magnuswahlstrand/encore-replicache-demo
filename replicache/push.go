@@ -91,6 +91,22 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 		if err != nil {
 			return err
 		}
+		{
+			return err
+		}
+	case "deleteTask":
+		var update types.TaskDeleted
+		if err := json.Unmarshal(mutation.Args, &update); err != nil {
+			return err
+		}
+
+		err = dbClient.MarkTaskAsDeleted(ctx, db.MarkTaskAsDeletedParams{
+			Key:     fmt.Sprintf("task/%s", update.ID),
+			Version: nextVersion,
+		})
+		if err != nil {
+			return err
+		}
 
 	default:
 		return fmt.Errorf(`Unknown mutation: %s`, mutation.Name)
@@ -123,6 +139,15 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 		return err
 	}
 
+	pokeClients()
+
 	//rlog.Info("Successfully processed mutation", "key", key, "version", nextVersion, "lastMutationID", nextMutationID)
 	return nil
+}
+
+func pokeClients() {
+	if err := m.Broadcast([]byte("change happened")); err != nil {
+		rlog.Error("poke failed")
+	}
+	rlog.Info("poke succesful", m.Len())
 }

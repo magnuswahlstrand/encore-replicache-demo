@@ -6,9 +6,11 @@ require (
 	encore.dev v1.25.0
 	github.com/jackc/pgx/v5 v5.2.0
 	github.com/matryer/is v1.4.1
+	github.com/olahol/melody v1.1.4
 )
 
 require (
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/puddle/v2 v2.1.2 // indirect

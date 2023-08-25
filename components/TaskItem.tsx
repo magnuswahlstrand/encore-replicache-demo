@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {ChangeEvent} from 'react';
 import {cn} from "@/lib/utils";
+import TaskMenu from "@/components/TaskMenu";
 
 
 type Props = {
@@ -8,8 +9,9 @@ type Props = {
     title: string
     completed: boolean
     onChange: (e: ChangeEvent<HTMLInputElement>) => void
+    onDelete: () => void
 };
-export const TaskItem = ({id, title, completed, onChange}: Props) => {
+export const TaskItem = ({id, title, completed, onChange, onDelete}: Props) => {
     return (
         <div>
             <input type="checkbox" id={`task_${id}`} className="hidden"
@@ -31,10 +33,11 @@ export const TaskItem = ({id, title, completed, onChange}: Props) => {
                                   clipRule="evenodd"/>
 						</svg>
 					</span>
-                <span className={cn("ml-4 text-sm", {
+                <div className={cn("ml-4 text-sm overflow-ellipsis max-w-full truncate", {
                     "line-through": completed,
                     "text-gray-400": completed,
-                })}> {title}</span>
+                })}> {title}</div>
+                <TaskMenu onDelete={onDelete}/>
             </label>
         </div>
     )

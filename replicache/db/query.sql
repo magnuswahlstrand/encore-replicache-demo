@@ -16,7 +16,14 @@ ON CONFLICT ("key") DO UPDATE
 
 -- name: UpdateTaskCompleted :exec
 UPDATE messages
-SET data = jsonb_set(data, '{completed}', $2), version = $3
+SET data    = jsonb_set(data, '{completed}', $2),
+    version = $3
+WHERE key = $1;
+
+-- name: MarkTaskAsDeleted :exec
+UPDATE messages
+SET deleted = true,
+    version = $2
 WHERE key = $1;
 
 -- name: GetSpaceVersion :one

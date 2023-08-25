@@ -133,6 +133,23 @@ func (q *Queries) ListTasksSince(ctx context.Context, version int32) ([]Message,
 	return items, nil
 }
 
+const markTaskAsDeleted = `-- name: MarkTaskAsDeleted :exec
+UPDATE messages
+SET deleted = true,
+    version = $2
+WHERE key = $1
+`
+
+type MarkTaskAsDeletedParams struct {
+	Key     string
+	Version int32
+}
+
+func (q *Queries) MarkTaskAsDeleted(ctx context.Context, arg MarkTaskAsDeletedParams) error {
+	_, err := q.db.Exec(ctx, markTaskAsDeleted, arg.Key, arg.Version)
+	return err
+}
+
 const updateLastMutationID = `-- name: UpdateLastMutationID :execresult
 UPDATE replicache_clients
 SET last_mutation_id = $1
@@ -166,7 +183,8 @@ func (q *Queries) UpdateSpaceVersion(ctx context.Context, arg UpdateSpaceVersion
 
 const updateTaskCompleted = `-- name: UpdateTaskCompleted :exec
 UPDATE messages
-SET data = jsonb_set(data, '{completed}', $2), version = $3
+SET data    = jsonb_set(data, '{completed}', $2),
+    version = $3
 WHERE key = $1
 `
 

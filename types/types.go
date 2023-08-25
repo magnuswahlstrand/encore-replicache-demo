@@ -11,3 +11,7 @@ type TaskCompleted struct {
 	ID        string `json:"id"`
 	Completed bool   `json:"completed"`
 }
+
+type TaskDeleted struct {
+	ID string `json:"id"`
+}

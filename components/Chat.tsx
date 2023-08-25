@@ -7,6 +7,8 @@ import {nanoid} from "nanoid";
 
 import {Task} from "@/types/types";
 import {TaskList} from "@/components/TaskList";
+import {useSearchParams} from "next/navigation";
+import {useWebsocket} from "@/lib/websockets";
 
 
 const REPLICACHE_LICENSE_KEY = process.env.NEXT_PUBLIC_REPLICACHE_LICENSE_KEY ?? ""
@@ -18,6 +20,7 @@ const addTask = async (tx: WriteTransaction, task: Omit<Task, "completed">) => {
         completed: false,
     });
 }
+
 const setTaskCompleted = async (tx: WriteTransaction, update: { id: string, completed: boolean }) => {
     const t = await tx.get(`task/${update.id}`)
     if (!t) {
@@ -32,10 +35,15 @@ const setTaskCompleted = async (tx: WriteTransaction, update: { id: string, comp
     });
 }
 
+const deleteTask = async (tx: WriteTransaction, update: { id: string }) => {
+    await tx.del(`task/${update.id}`)
+}
+
 
 const mutators = {
     addTask,
-    setTaskCompleted
+    setTaskCompleted,
+    deleteTask
 }
 
 function Chat({userId}: { userId: string }) {
@@ -54,6 +62,8 @@ function Chat({userId}: { userId: string }) {
         [],
     );
 
+    const [ws] = useWebsocket('ws://localhost:4000/ws/subscribe')
+
     useEffect(() => {
         if (rep)
             return
@@ -63,9 +73,20 @@ function Chat({userId}: { userId: string }) {
             licenseKey: REPLICACHE_LICENSE_KEY,
             pushURL: BASE_URL + '/api/replicache-push',
             pullURL: BASE_URL + '/api/replicache-pull',
+            // pullInterval: 5 * 1000,
             mutators
         })
         setRep(r);
+
+        // TODO: where to do this?
+        if(!ws)
+            return
+
+        ws.onmessage = (e: MessageEvent) => {
+            console.log('got poked', e);
+            r?.pull()
+        }
+
 
         // function listen() {
         //     console.log('listening');
@@ -81,12 +102,6 @@ function Chat({userId}: { userId: string }) {
         //     });
         // }
         //
-        // // TODO Handle async?
-        // r.mutate.updateUser({
-        //     id: userId,
-        //     name: "Magnus",
-        //     icon: randomEmoji(),
-        // })
         //
         // listen();
         // // TODO: Unlisten here?
@@ -131,6 +146,7 @@ function Chat({userId}: { userId: string }) {
                 <TaskList
                     tasks={tasksSimple}
                     onTaskCompleted={rep?.mutate.setTaskCompleted}
+                    onTaskDeleted={rep?.mutate.deleteTask}
                 />
                 <button className="flex items-center w-full h-8 px-2 mt-2 text-sm font-medium rounded">
                     <svg className="w-5 h-5 text-gray-400 fill-current" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -154,6 +170,8 @@ function Chat({userId}: { userId: string }) {
 }
 
 export default function ChatWithUserId() {
-    return <Chat userId={"MAGNUS"}/>
+    const searchParams = useSearchParams()
+    const userId = searchParams.get('userId') ?? "MAGNUS"
+    return <Chat userId={userId}/>
 }
 
