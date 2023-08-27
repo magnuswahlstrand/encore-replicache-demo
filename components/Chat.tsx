@@ -68,6 +68,11 @@ function Chat({userId}: { userId: string }) {
         if (rep)
             return
 
+        if (ws === null) {
+            console.info("Websocket not connected. Wait a bit")
+            return
+        }
+
         const r = new Replicache({
             name: userId,
             licenseKey: REPLICACHE_LICENSE_KEY,
@@ -78,14 +83,12 @@ function Chat({userId}: { userId: string }) {
         })
         setRep(r);
 
-        // TODO: where to do this?
-        if(!ws)
-            return
 
         ws.onmessage = (e: MessageEvent) => {
             console.log('got poked', e);
             r?.pull()
         }
+        console.info("success")
 
 
         // function listen() {
@@ -106,7 +109,7 @@ function Chat({userId}: { userId: string }) {
         // listen();
         // // TODO: Unlisten here?
 
-    }, []);
+    }, [ws]);
 
     const contentRef = React.createRef<HTMLInputElement>();
 

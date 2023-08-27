@@ -42,9 +42,6 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 
 	nextMutationID := lastMutationID + 1
 
-	//const lastMutationID = await getLastMutationID(tx, clientID, false);
-	//const nextMutationID = lastMutationID + 1;
-	//
 	//// It's common due to connectivity issues for clients to send a
 	//// mutation which has already been processed. Skip these.
 	if mutation.ID < nextMutationID {
@@ -89,9 +86,6 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 			Version:     nextVersion,
 		})
 		if err != nil {
-			return err
-		}
-		{
 			return err
 		}
 	case "deleteTask":
@@ -141,7 +135,6 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 
 	pokeClients()
 
-	//rlog.Info("Successfully processed mutation", "key", key, "version", nextVersion, "lastMutationID", nextMutationID)
 	return nil
 }
 
