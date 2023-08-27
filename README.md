@@ -11,7 +11,9 @@
     * [x] Dynamic Pull
     * [x] Poke
 * [ ] Deploy to staging
-* [ ] Fix action button
 * [ ] Features
   * [ ] Re-order tasks
   * [ ] Rename task
+* [ ] Bugs
+  * [x] Fix action button
+  * [x] Fix text overflow

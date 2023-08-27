@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {ChangeEvent} from 'react';
 import {cn} from "@/lib/utils";
-import TaskMenu from "@/components/TaskMenu";
+import TaskActionMenu from "@/components/TaskMenu";
 
 
 type Props = {
@@ -33,11 +33,16 @@ export const TaskItem = ({id, title, completed, onChange, onDelete}: Props) => {
                                   clipRule="evenodd"/>
 						</svg>
 					</span>
-                <div className={cn("ml-4 text-sm overflow-ellipsis max-w-full truncate", {
-                    "line-through": completed,
-                    "text-gray-400": completed,
-                })}> {title}</div>
-                <TaskMenu onDelete={onDelete}/>
+                <div
+                    className="flex flex-row justify-between max-w-full overflow-hidden w-full items-center">
+                    <div className={cn("px-2 text-sm overflow-hidden truncate", {
+                        "line-through": completed,
+                        "text-gray-400": completed,
+                    })}>
+                        {title}
+                    </div>
+                </div>
+                <TaskActionMenu onDelete={onDelete}/>
             </label>
         </div>
     )

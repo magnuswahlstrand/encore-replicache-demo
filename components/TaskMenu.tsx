@@ -26,19 +26,19 @@ const TaskMenu = ({onDelete}: Props) => {
         <DropdownMenuContent className="w-56">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator/>
-            <DropdownMenuItem className="hover:cursor-pointer">
-                <EditIcon className="mr-2 h-4 w-4"/>
-                <span>Edit title</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="hover:cursor-pointer">
-                <ArrowBigUp className="mr-2 h-4 w-4"/>
-                <span>Move up</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="hover:cursor-pointer">
-                <ArrowBigDown className="mr-2 h-4 w-4"/>
-                <span>Move down</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator/>
+            {/*<DropdownMenuItem className="hover:cursor-pointer">*/}
+            {/*    <EditIcon className="mr-2 h-4 w-4"/>*/}
+            {/*    <span>Edit title</span>*/}
+            {/*</DropdownMenuItem>*/}
+            {/*<DropdownMenuItem className="hover:cursor-pointer">*/}
+            {/*    <ArrowBigUp className="mr-2 h-4 w-4"/>*/}
+            {/*    <span>Move up</span>*/}
+            {/*</DropdownMenuItem>*/}
+            {/*<DropdownMenuItem className="hover:cursor-pointer">*/}
+            {/*    <ArrowBigDown className="mr-2 h-4 w-4"/>*/}
+            {/*    <span>Move down</span>*/}
+            {/*</DropdownMenuItem>*/}
+            {/*<DropdownMenuSeparator/>*/}
             <DropdownMenuItem className="text-red-600 hover:cursor-pointer" onClick={onDelete}>
                 <Archive className="mr-2 h-4 w-4"/>
                 <span>Delete</span>
