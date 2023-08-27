@@ -12,7 +12,15 @@ import {useWebsocket} from "@/lib/websockets";
 
 
 const REPLICACHE_LICENSE_KEY = process.env.NEXT_PUBLIC_REPLICACHE_LICENSE_KEY ?? ""
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? ""
+
+const isDev = process.env.NODE_ENV === 'development'
+const wsProtocol = isDev ? 'ws' : 'wss';
+const httpProtocol = isDev ? 'http' : 'https';
+
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL ?? "localhost:4000"
+const API_BASE_URL = `${httpProtocol}://${BASE_URL}`
+const WS_BASE_URL = `${wsProtocol}://${BASE_URL}`
+
 
 const addTask = async (tx: WriteTransaction, task: Omit<Task, "completed">) => {
     await tx.put(`task/${task.id}`, {
@@ -62,7 +70,7 @@ function Chat({userId}: { userId: string }) {
         [],
     );
 
-    const [ws] = useWebsocket('ws://localhost:4000/ws/subscribe')
+    const [ws] = useWebsocket(WS_BASE_URL + `/ws/subscribe`)
 
     useEffect(() => {
         if (rep)
@@ -76,8 +84,8 @@ function Chat({userId}: { userId: string }) {
         const r = new Replicache({
             name: userId,
             licenseKey: REPLICACHE_LICENSE_KEY,
-            pushURL: BASE_URL + '/api/replicache-push',
-            pullURL: BASE_URL + '/api/replicache-pull',
+            pushURL: API_BASE_URL + '/api/replicache-push',
+            pullURL: API_BASE_URL + '/api/replicache-pull',
             // pullInterval: 5 * 1000,
             mutators
         })
@@ -89,26 +97,6 @@ function Chat({userId}: { userId: string }) {
             r?.pull()
         }
         console.info("success")
-
-
-        // function listen() {
-        //     console.log('listening');
-        //     // Listen for pokes, and pull whenever we get one.
-        //     Pusher.logToConsole = true;
-        //     const pusher = new Pusher(process.env.NEXT_PUBLIC_REPLICHAT_PUSHER_KEY ?? "", {
-        //         cluster: process.env.NEXT_PUBLIC_REPLICHAT_PUSHER_CLUSTER ?? "",
-        //     });
-        //     const channel = pusher.subscribe('default');
-        //     channel.bind('poke', () => {
-        //         console.log('got poked');
-        //         r?.pull();
-        //     });
-        // }
-        //
-        //
-        // listen();
-        // // TODO: Unlisten here?
-
     }, [ws]);
 
     const contentRef = React.createRef<HTMLInputElement>();
