@@ -19,6 +19,7 @@ func setup(t *testing.T) *is.I {
 	is := is.New(t)
 	db.DB.Exec(context.TODO(), "DELETE FROM spaces")
 	db.DB.Exec(context.TODO(), "DELETE FROM repliacache_clients")
+	db.DB.Exec(context.TODO(), "DELETE FROM messages")
 
 	is.NoErr(db.ReplicacheDb.CreateSpace(context.TODO(), db.CreateSpaceParams{
 		ID:      r.DEFAULT_SPACE_ID,
@@ -39,7 +40,7 @@ func TestProcessMutation(t *testing.T) {
 	// Act
 	err := r.ProcessMutation(context.TODO(), db.ReplicacheDb, TEST_CLIENT_ID, r.Mutation{
 		ID:   1,
-		Name: "createMessage",
+		Name: "addTask",
 		Args: json.RawMessage(`{"from":"Fred","content":"tacos?"}`),
 		//Args:      JSONValue
 		Timestamp: 1,
@@ -51,8 +52,8 @@ func TestProcessMutation(t *testing.T) {
 
 	// Act
 	err = r.ProcessMutation(context.TODO(), db.ReplicacheDb, TEST_CLIENT_ID, r.Mutation{
-		ID:        1,
-		Name:      "createMessage",
+		ID:        2,
+		Name:      "addTask",
 		Args:      json.RawMessage(`{"from":"Fred","content":"tacos?"}`),
 		Timestamp: 1,
 	})

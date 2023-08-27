@@ -45,7 +45,6 @@ func ProcessMutation(ctx context.Context, dbClient *db.Queries, clientID ClientI
 	//// It's common due to connectivity issues for clients to send a
 	//// mutation which has already been processed. Skip these.
 	if mutation.ID < nextMutationID {
-		fmt.Println("XXXXY", mutation.ID, nextMutationID)
 		rlog.Info("Mutation has already been processed - skipping", "mutation", mutation.ID)
 		return nil
 	}
