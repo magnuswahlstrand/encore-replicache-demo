@@ -7,19 +7,8 @@ import {nanoid} from "nanoid";
 
 import {Task} from "@/types/types";
 import {TaskList} from "@/components/TaskList";
-import {useSearchParams} from "next/navigation";
 import {useWebsocket} from "@/lib/websockets";
-
-
-const REPLICACHE_LICENSE_KEY = process.env.NEXT_PUBLIC_REPLICACHE_LICENSE_KEY ?? ""
-
-const isDev = process.env.NODE_ENV === 'development'
-const wsProtocol = isDev ? 'ws' : 'wss';
-const httpProtocol = isDev ? 'http' : 'https';
-
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL ?? "localhost:4000"
-const API_BASE_URL = `${httpProtocol}://${BASE_URL}`
-const WS_BASE_URL = `${wsProtocol}://${BASE_URL}`
+import {API_BASE_URL, REPLICACHE_LICENSE_KEY, WS_BASE_URL} from "@/lib/env";
 
 
 const addTask = async (tx: WriteTransaction, task: Omit<Task, "completed">) => {
@@ -160,9 +149,4 @@ function Chat({userId}: { userId: string }) {
     );
 }
 
-export default function ChatWithUserId() {
-    const searchParams = useSearchParams()
-    const userId = searchParams.get('userId') ?? "MAGNUS"
-    return <Chat userId={userId}/>
-}
-
+export default Chat
